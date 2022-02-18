@@ -74,6 +74,10 @@ def connect():
                 break
     except ConnectionResetError:
         sys.exit("Conexão encerrada")
+
+    except KeyboardInterrupt:
+        send(DISCONNECT_MESSAGE)
+        sys.exit("\nConexão interrompida")
         
 
         

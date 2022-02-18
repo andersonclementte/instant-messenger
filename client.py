@@ -1,10 +1,12 @@
-import socket, threading
+import socket, threading, sys
 
 FORMAT = 'utf-8'
 HEADER = 64
+MSG_SIZE = 2048
 PORT = 5050
 DISCONNECT_MESSAGE = "!SAIR"
-SERVER = socket.gethostbyname(socket.gethostname())
+# SERVER = socket.gethostbyname(socket.gethostname())
+SERVER = input("Digite o endereço do servidor: ")
 ADDR = (SERVER, PORT)
 
 
@@ -12,12 +14,30 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
 def listen_msg():
-    msg_len = client.recv(HEADER).decode(FORMAT)
-    print(msg_len)
-    if msg_len:
-        msg_len = int(msg_len)
-        msg = client.recv(msg_len).decode(FORMAT)
+    try:
+        msg = client.recv(MSG_SIZE).decode(FORMAT)
         print(msg)
+    #try:
+    #msg_header = client.recv(HEADER).decode(FORMAT)
+    # if client.recv(HEADER).decode(FORMAT):
+    #     msg_len = client.recv(HEADER).decode(FORMAT)
+    #     msg_len = int(msg_len.strip())
+    #     msg = client.recv(msg_len).decode(FORMAT)
+    #     # if type(msg_len) == str:
+    #     #     msg_len = len(msg_len)
+    #     #     msg = client.recv(msg_len).decode(FORMAT)
+    #     # if type(msg_len) == bytes:
+    #     #     msg_len = msg_len.decode(FORMAT)
+    #     #     msg = client.recv(msg_len).decode(FORMAT)
+    #     # if type(msg_len) == int:
+    #     #     msg_len = int(msg_len)
+    #     #     msg = client.recv(msg_len).decode(FORMAT)
+    #     print(msg)
+    # except ValueError:
+    #     sys.exit()
+    except ConnectionResetError:
+            sys.exit("Conexão encerrada")
+
 
 def send(msg):
 
@@ -35,22 +55,26 @@ def send(msg):
 def connect():
     name = input('Qual seu nome? ')
     print(f"Bem vindo, {name}")
-    while True:
-        # if client.recv(2048):
-        #     print("msg recebida")
-        #     print(client.recv(2048).decode(FORMAT))
-        thread = threading.Thread(target=listen_msg)
-        thread.start()
-        msg = input(">> ")
-        #input()
-        
-        if len(msg) > 0 and msg != '\n':
-            send(f"{name} disse: {msg}")
+    try:
+        while True:
+            # if client.recv(2048):
+            #     print("msg recebida")
+            #     print(client.recv(2048).decode(FORMAT))
+            thread = threading.Thread(target=listen_msg)
+            thread.start()
+            msg = input(">> ")
+            #input()
+            
+            if len(msg) > 0 and msg != '\n':
+                send(f"{name} disse: {msg}")
 
-        if msg == DISCONNECT_MESSAGE:
-            print(f"Tchau {name}!")
-            send(msg+name)
-            break
+            if msg == DISCONNECT_MESSAGE:
+                print(f"Tchau {name}!")
+                send(msg+name)
+                break
+    except ConnectionResetError:
+        sys.exit("Conexão encerrada")
+        
 
         
         #input()

@@ -1,7 +1,8 @@
-import socket, threading, time
+import socket, threading, sys
 
 FORMAT = 'utf-8'
 HEADER = 64
+MSG_SIZE = 2048
 PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
@@ -18,11 +19,11 @@ def post_msg(msg):
     MSG_BUFFER.append(msg)
     for client in CLIENT_LIST:
         message = msg.encode(FORMAT)
-        msg_len = len(message)
-        send_len = str(msg_len).encode(FORMAT)
-        send_len += b' '*(HEADER - len(send_len))
-        client[0].send(send_len)
-        time.sleep(1)
+        # msg_len = len(message)
+        # send_len = str(msg_len).encode(FORMAT)
+        # send_len += b' '*(HEADER - len(send_len))
+        # client[0].send(send_len)
+        #time.sleep(1)
         client[0].send(message)
     MSG_BUFFER.pop(0)
 
@@ -56,14 +57,18 @@ def handle_client(conn, addr):
     conn.close()
 
 def start():
-    server.listen()
-    print(f"[LISTENING] Endereço do servidor: {SERVER}")
-    while True:
-        conn, addr = server.accept()
-        CLIENT_LIST.append((conn, addr))
-        thread = threading.Thread(target=handle_client, args = (conn, addr))
-        thread.start()
-        print(f'[CONEXÕES ATIVAS] {threading.activeCount()-1}')
+    try:
+        server.listen()
+        print(f"[LISTENING] Endereço do servidor: {SERVER}")
+        while True:
+            conn, addr = server.accept()
+            CLIENT_LIST.append((conn, addr))
+            thread = threading.Thread(target=handle_client, args = (conn, addr))
+            thread.start()
+            print(f'[CONEXÕES ATIVAS] {threading.activeCount()-1}')
+    except KeyboardInterrupt:
+        server.close()
+        sys.exit("\n[EXIT] Servidor encerrado")
 
 print("[INICIANDO] Servidor iniciando...")
 start()
